@@ -14,6 +14,7 @@ const App = () => {
   ]
    
   const [selected, setSelected] = useState(0)
+  const [votes, setVotes] = useState(new Array(anecdotes.length).fill(0));  // Initialize votes array with zeros
 
   // Function to select a random anecdote
   const getRandomAnecdote = () => {
@@ -21,10 +22,18 @@ const App = () => {
     setSelected(randomIndex);
   };
 
+  const vote = () => {
+    const newVotes = [...votes]; // Make a copy of the votes array
+    newVotes[selected] += 1;     // Increment the vote count for the current anecdote
+    setVotes(newVotes);         // Update the state with the new votes array
+  };
+
   return (
     <div>
       <h1>Anecdote of the day</h1>
       <p>{anecdotes[selected]}</p>
+      <p>Votes: {votes[selected]}</p>
+      <button onClick={vote}>Vote</button>
       <button onClick={getRandomAnecdote}>Show me another anecdote!</button>
     </div>
   );
