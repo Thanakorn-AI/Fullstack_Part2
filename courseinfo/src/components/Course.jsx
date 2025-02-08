@@ -5,7 +5,11 @@ import Content from './Content';
 
 const Total = ({ parts }) => {
     const total = parts.reduce((sum, part) => sum + part.exercises, 0);
-    return <p>Total exercises: {total}</p>;
+    const style = {
+        fontWeight: 'bold',
+        color: '#0026ff'
+      };
+    return <p style={style}>Total exercises: {total}</p>;
   };
   
 
