@@ -1,18 +1,24 @@
 // Phonebook/src/App.jsx
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import Filter from './components/Filter';
 import Persons from './components/Persons';
 import PersonForm from './components/PersonForm';
 
 
 const App = () => {
-  const [persons, setPersons] = useState([{ name: 'Arto Hellas', number: '040-1234567' },
-    { name: 'Ada Lovelace', number: '39-44-5323523', id: 2 },
-    { name: 'Dan Abramov', number: '12-43-234345', id: 3 },
-    { name: 'Mary Poppendieck', number: '39-23-6423122', id: 4 }]);
+  const [persons, setPersons] = useState([]);
   const [newName, setNewName] = useState('');
   const [newNumber, setNewNumber] = useState('');  // New state for handling phone numbers
   const [searchTerm, setSearchTerm] = useState('');
+
+  useEffect(() => {
+    axios.get('http://localhost:3001/persons')
+      .then(response => {
+        setPersons(response.data);
+      })
+      .catch(error => console.error('Error fetching data:', error));
+  }, []);
 
   const handleNameChange = (event) => {
     setNewName(event.target.value);
@@ -36,11 +42,15 @@ const App = () => {
         name: newName,
         number: newNumber  // Include the number in the person object
       };
-      setPersons(persons.concat(personObject));
-      setNewName(''); // Clear the input after submitting
-      setNewNumber('');  // Clear the number input after submitting
-    }
-  };
+      axios.post('http://localhost:3001/persons', personObject)
+      .then(response => {
+        setPersons(persons.concat(response.data));
+        setNewName('');
+        setNewNumber('');
+      })
+      .catch(error => console.error('Error adding person:', error));
+  }
+};
 
   const filteredPersons = persons.filter(person =>
     person.name.toLowerCase().includes(searchTerm.toLowerCase())
