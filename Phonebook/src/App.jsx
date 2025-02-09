@@ -1,6 +1,6 @@
 // Phonebook/src/App.jsx
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import phonebookService from './services/phonebook';
 import Filter from './components/Filter';
 import Persons from './components/Persons';
 import PersonForm from './components/PersonForm';
@@ -13,12 +13,13 @@ const App = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    axios.get('http://localhost:3002/persons')
+    phonebookService.getAll()
       .then(response => {
         setPersons(response.data);
       })
       .catch(error => console.error('Error fetching data:', error));
   }, []);
+
 
   const handleNameChange = (event) => {
     setNewName(event.target.value);
@@ -32,25 +33,21 @@ const App = () => {
     setSearchTerm(event.target.value);
   };
 
-  const addPerson = (event) => {
+const addPerson = event => {
     event.preventDefault();
-    // Convert both newName and existing names to lowercase for comparison
+    const personObject = { name: newName, number: newNumber };
     if (persons.some(person => person.name.toLowerCase() === newName.toLowerCase())) {
       alert(`${newName} is already added to the phonebook`);
     } else {
-      const personObject = {
-        name: newName,
-        number: newNumber  // Include the number in the person object
-      };
-      axios.post('http://localhost:3002/persons', personObject)
-      .then(response => {
-        setPersons(persons.concat(response.data));
-        setNewName('');
-        setNewNumber('');
-      })
-      .catch(error => console.error('Error adding person:', error));
-  }
-};
+      phonebookService.create(personObject)
+        .then(response => {
+          setPersons(persons.concat(response.data));
+          setNewName('');
+          setNewNumber('');
+        })
+        .catch(error => console.error('Error adding person:', error));
+    }
+  };
 
   const filteredPersons = persons.filter(person =>
     person.name.toLowerCase().includes(searchTerm.toLowerCase())
