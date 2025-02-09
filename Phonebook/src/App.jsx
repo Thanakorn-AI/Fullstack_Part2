@@ -42,7 +42,7 @@ const App = () => {
         name: newName,
         number: newNumber  // Include the number in the person object
       };
-      axios.post('http://localhost:3001/persons', personObject)
+      axios.post('http://localhost:3002/persons', personObject)
       .then(response => {
         setPersons(persons.concat(response.data));
         setNewName('');
