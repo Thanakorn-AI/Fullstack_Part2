@@ -33,11 +33,21 @@ const App = () => {
     setSearchTerm(event.target.value);
   };
 
-const addPerson = event => {
+  const addPerson = event => {
     event.preventDefault();
     const personObject = { name: newName, number: newNumber };
-    if (persons.some(person => person.name.toLowerCase() === newName.toLowerCase())) {
-      alert(`${newName} is already added to the phonebook`);
+    const existingPerson = persons.find(p => p.name.toLowerCase() === newName.toLowerCase());
+
+    if (existingPerson) {
+      if (window.confirm(`${newName} is already added to the phonebook, replace the old number with a new one?`)) {
+        phonebookService.update(existingPerson.id, { ...existingPerson, number: newNumber })
+          .then(response => {
+            setPersons(persons.map(p => p.id === existingPerson.id ? response.data : p));
+            setNewName('');
+            setNewNumber('');
+          })
+          .catch(error => console.error('Error updating person:', error));
+      }
     } else {
       phonebookService.create(personObject)
         .then(response => {
@@ -47,7 +57,7 @@ const addPerson = event => {
         })
         .catch(error => console.error('Error adding person:', error));
     }
-  };
+};
 
   const deletePerson = (id, name) => {
     if (window.confirm(`Delete ${name}?`)) {
