@@ -13,7 +13,7 @@ const App = () => {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    axios.get('http://localhost:3001/persons')
+    axios.get('http://localhost:3002/persons')
       .then(response => {
         setPersons(response.data);
       })
