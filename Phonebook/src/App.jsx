@@ -49,6 +49,20 @@ const addPerson = event => {
     }
   };
 
+  const deletePerson = (id, name) => {
+    if (window.confirm(`Delete ${name}?`)) {
+      phonebookService.remove(id)
+        .then(() => {
+          setPersons(persons.filter(p => p.id !== id));
+        })
+        .catch(error => {
+          console.error('Error deleting person:', error);
+          alert(`The information of ${name} was already removed from the server.`);
+          setPersons(persons.filter(p => p.id !== id)); // Optionally refresh list if not found
+        });
+    }
+  };
+
   const filteredPersons = persons.filter(person =>
     person.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -66,7 +80,7 @@ const addPerson = event => {
         handleNumberChange={handleNumberChange}
       />
       <h3>Numbers</h3>
-      <Persons persons={filteredPersons} />
+      <Persons persons={filteredPersons} onDelete={deletePerson} />
     </div>
   );
 };
