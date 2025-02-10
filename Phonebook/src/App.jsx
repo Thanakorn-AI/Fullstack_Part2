@@ -5,12 +5,32 @@ import Filter from './components/Filter';
 import Persons from './components/Persons';
 import PersonForm from './components/PersonForm';
 
+// Notification component with inline styling
+const Notification = ({ message }) => {
+  if (message === null) {
+    return null;
+  }
+  return (
+    <div style={{
+      color: 'green',
+      background: 'lightgrey',
+      fontSize: 20,
+      borderStyle: 'solid',
+      borderRadius: 5,
+      padding: 10,
+      marginBottom: 10
+    }}>
+      {message}
+    </div>
+  );
+};
 
 const App = () => {
   const [persons, setPersons] = useState([]);
   const [newName, setNewName] = useState('');
   const [newNumber, setNewNumber] = useState('');  // New state for handling phone numbers
   const [searchTerm, setSearchTerm] = useState('');
+  const [notification, setNotification] = useState(null);
 
   useEffect(() => {
     phonebookService.getAll()
@@ -40,18 +60,28 @@ const App = () => {
 
     if (existingPerson) {
       if (window.confirm(`${newName} is already added to the phonebook, replace the old number with a new one?`)) {
-        phonebookService.update(existingPerson.id, { ...existingPerson, number: newNumber })
+        phonebookService
+          .update(existingPerson.id, { ...existingPerson, number: newNumber })
           .then(response => {
             setPersons(persons.map(p => p.id === existingPerson.id ? response.data : p));
+            setNotification(`Updated ${newName}'s number`);
+            setTimeout(() => {
+              setNotification(null);
+            }, 5000);
             setNewName('');
             setNewNumber('');
           })
           .catch(error => console.error('Error updating person:', error));
       }
     } else {
-      phonebookService.create(personObject)
+      phonebookService
+        .create(personObject)
         .then(response => {
           setPersons(persons.concat(response.data));
+          setNotification(`Added ${newName} to the Phonebook`);
+          setTimeout(() => {
+            setNotification(null);
+          }, 5000);
           setNewName('');
           setNewNumber('');
         })
@@ -61,7 +91,8 @@ const App = () => {
 
   const deletePerson = (id, name) => {
     if (window.confirm(`Delete ${name}?`)) {
-      phonebookService.remove(id)
+      phonebookService
+        .remove(id)
         .then(() => {
           setPersons(persons.filter(p => p.id !== id));
         })
@@ -80,6 +111,7 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
+      <Notification message={notification} />
       <Filter value={searchTerm} onChange={handleSearchChange} />
       <h3>Add a new contact</h3>
       <PersonForm
