@@ -6,20 +6,24 @@ import Persons from './components/Persons';
 import PersonForm from './components/PersonForm';
 
 // Notification component with inline styling
-const Notification = ({ message }) => {
+const Notification = ({ message, isError }) => {
   if (message === null) {
     return null;
   }
+  
+  const notificationStyle = {
+    color: isError ? 'red' : 'green',
+    background: 'lightgrey',
+    fontSize: '20px',
+    borderStyle: 'solid',
+    borderRadius: '5px',
+    padding: '10px',
+    marginBottom: '10px',
+    borderColor: isError ? 'red' : 'green'
+  };
+
   return (
-    <div style={{
-      color: 'green',
-      background: 'lightgrey',
-      fontSize: 20,
-      borderStyle: 'solid',
-      borderRadius: 5,
-      padding: 10,
-      marginBottom: 10
-    }}>
+    <div style={notificationStyle}>
       {message}
     </div>
   );
@@ -31,6 +35,7 @@ const App = () => {
   const [newNumber, setNewNumber] = useState('');  // New state for handling phone numbers
   const [searchTerm, setSearchTerm] = useState('');
   const [notification, setNotification] = useState(null);
+  const [isError, setIsError] = useState(false);
 
   useEffect(() => {
     phonebookService.getAll()
@@ -65,13 +70,21 @@ const App = () => {
           .then(response => {
             setPersons(persons.map(p => p.id === existingPerson.id ? response.data : p));
             setNotification(`Updated ${newName}'s number`);
+            setIsError(false);
             setTimeout(() => {
               setNotification(null);
             }, 5000);
             setNewName('');
             setNewNumber('');
           })
-          .catch(error => console.error('Error updating person:', error));
+          .catch(error => {
+            console.error('Error updating person:', error);
+            setNotification(`Failed to update ${newName}. It may have been removed.`);
+            setIsError(true);
+            setTimeout(() => {
+              setNotification(null);
+            }, 5000);
+          });
       }
     } else {
       phonebookService
@@ -79,15 +92,23 @@ const App = () => {
         .then(response => {
           setPersons(persons.concat(response.data));
           setNotification(`Added ${newName} to the Phonebook`);
+          setIsError(false);
           setTimeout(() => {
             setNotification(null);
           }, 5000);
           setNewName('');
           setNewNumber('');
         })
-        .catch(error => console.error('Error adding person:', error));
+        .catch(error => {
+          console.error('Error adding person:', error);
+          setNotification(`Error adding ${newName} to the phonebook.`);
+          setIsError(true);
+          setTimeout(() => {
+            setNotification(null);
+          }, 5000);
+        });
     }
-};
+  };
 
   const deletePerson = (id, name) => {
     if (window.confirm(`Delete ${name}?`)) {
@@ -98,8 +119,12 @@ const App = () => {
         })
         .catch(error => {
           console.error('Error deleting person:', error);
-          alert(`The information of ${name} was already removed from the server.`);
+          setNotification(`The information of ${name} was already removed from the server.`);
+          setIsError(true);
           setPersons(persons.filter(p => p.id !== id)); // Optionally refresh list if not found
+          setTimeout(() => {
+            setNotification(null);
+          }, 5000);
         });
     }
   };
@@ -111,7 +136,7 @@ const App = () => {
   return (
     <div>
       <h2>Phonebook</h2>
-      <Notification message={notification} />
+      <Notification message={notification} isError={isError} />
       <Filter value={searchTerm} onChange={handleSearchChange} />
       <h3>Add a new contact</h3>
       <PersonForm
