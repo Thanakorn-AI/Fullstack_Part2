@@ -2,10 +2,13 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
+
+
 function App() {
   const [countries, setCountries] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCountry, setSelectedCountry] = useState(null);
+  const [weather, setWeather] = useState(null);
 
   useEffect(() => {
     axios.get('https://studies.cs.helsinki.fi/restcountries/api/all')
@@ -17,6 +20,7 @@ function App() {
   const handleSearchChange = (event) => {
     setSearchTerm(event.target.value);
     setSelectedCountry(null);  
+    setWeather(null);
   };
 
   const filteredCountries = countries.filter(country =>
@@ -25,6 +29,16 @@ function App() {
 
   const handleDetailsClick = (country) => {
     setSelectedCountry(country);
+    fetchWeatherData(country.capital[0]);
+  };
+
+  const fetchWeatherData = (capital) => {
+    const apiKey = import.meta.env.VITE_OPEN_WEATHER_API_KEY;  // Ensure you've set up this environment variable
+    axios.get(`https://api.openweathermap.org/data/2.5/weather?q=${capital}&appid=${apiKey}&units=metric`)
+      .then(response => {
+        setWeather(response.data);
+      })
+      .catch(error => console.error('Weather fetching error:', error));
   };
 
   return (
@@ -47,6 +61,14 @@ function App() {
                 <li key={i}>{language}</li>
               ))}
             </ul>
+            {weather && (
+              <div>
+                <h3>Weather in {selectedCountry.capital[0]}</h3>
+                <p>Temperature: {weather.main.temp}°C</p>
+                <p>Weather: {weather.weather[0].main} ({weather.weather[0].description})</p>
+                <img src={`https://openweathermap.org/img/wn/${weather.weather[0].icon}@2x.png`} alt="weather icon" style={{ width: '100px', height: '100px' }}/>
+              </div>
+            )}
             <button onClick={() => setSelectedCountry(null)}>Back to List</button>
           </div>
         ) : searchTerm && (
